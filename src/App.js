@@ -24,9 +24,25 @@ class App extends Component {
     };
   }
 
-  componentDidMount() {
+  componentDidMount = async () => {
+    const photoPaths = await AsyncStorage.getItem('photos');
+    photoPaths &&
+      this.setState({
+        photos: JSON.parse(photoPaths),
+      });
+  };
 
-  }
+  setPhoto = imagePath => {
+    this.setState(
+      {
+        view: 'photos',
+        photos: [imagePath, ...this.state.photos],
+      },
+      () => {
+        AsyncStorage.setItem('photos', JSON.stringify(this.state.photos));
+      }
+    );
+  };
 
   handleImageCapture = data => {
     const imagePath = `${
@@ -37,12 +53,8 @@ class App extends Component {
       if (Platform.OS === 'ios') {
         RNFS.copyFile(data.uri, imagePath)
           .then(res => {
-            console.log({ res });
             console.log('saved path: ', imagePath);
-            this.setState({
-              view: 'photos',
-              photos: [imagePath, ...this.state.photos],
-            });
+            this.setPhoto(imagePath);
           })
           .catch(err => {
             console.log('ERROR: image file write failed!!!');
@@ -51,10 +63,7 @@ class App extends Component {
       } else if (Platform.OS === 'android') {
         RNFS.copyFile(data.uri, imagePath)
           .then(res => {
-            this.setState({
-              view: 'photos',
-              photos: [imagePath, ...this.state.photos],
-            });
+            this.setPhoto(imagePath);
           })
           .catch(err => {
             console.log('ERROR: image file write failed!!!');
@@ -106,7 +115,7 @@ class App extends Component {
               onCancel={() => {
                 this.setState({ view: 'photos' });
               }}
-              onCapture={handleImageCapture}
+              onCapture={this.handleImageCapture}
             />
           )}
         </SafeAreaView>
@@ -190,7 +199,6 @@ const styles = StyleSheet.create({
     margin: 5,
   },
   sectionContainer: {
-    marginTop: 32,
     paddingHorizontal: 24,
     alignItems: 'center',
   },
