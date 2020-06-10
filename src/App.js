@@ -65,6 +65,8 @@ class App extends Component {
 
   uploadPhoto = async photo => {
     setTimeout(() => {
+      // upload photo to server/service here
+
       const success = true;
       if (success) {
         this.setState(
@@ -85,6 +87,11 @@ class App extends Component {
             this.queNextUpload();
           }
         );
+      } else {
+        this.setState({
+          uploading: false,
+          error: 'Error uploading photo.',
+        });
       }
       return true;
     }, 2000);
@@ -316,6 +323,7 @@ const styles = StyleSheet.create({
     width: 200,
     height: 200,
     margin: 5,
+    borderRadius: 5,
   },
 });
 
