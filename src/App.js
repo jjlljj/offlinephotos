@@ -24,6 +24,7 @@ class App extends Component {
       photos: [],
       uploadedPhotos: [],
       uploading: false,
+      error: '',
     };
   }
 
@@ -54,7 +55,7 @@ class App extends Component {
   };
 
   queNextUpload = () => {
-    const error = false;
+    const { error } = this.state;
 
     if (this.state.photos.length && !error) {
       this.setState({ uploading: true }, () => {
@@ -63,38 +64,45 @@ class App extends Component {
     }
   };
 
+  asyncUpload = async () => {
+    // mock upload of a photo
+    return new Promise(async (resolve, reject) => {
+      setTimeout(() => {
+        resolve(true);
+      }, 2000);
+    });
+  };
+
   uploadPhoto = async photo => {
-    setTimeout(() => {
-      // upload photo to server/service here
+    // upload photo to server/service here
+    const success = await this.asyncUpload();
 
-      const success = true;
-      if (success) {
-        this.setState(
-          {
-            uploading: false,
-            photos: this.state.photos.filter(url => url !== photo),
-            uploadedPhotos: [photo, ...this.state.uploadedPhotos],
-          },
-          () => {
-            AsyncStorage.setItem('photos', JSON.stringify(this.state.photos));
-            AsyncStorage.setItem(
-              'uploadedPhotos',
-              JSON.stringify(this.state.uploadedPhotos)
-            );
-            // delete photo here from system as well if not saving uploaded list
-
-            // try next upload
-            this.queNextUpload();
-          }
-        );
-      } else {
-        this.setState({
+    if (success) {
+      this.setState(
+        {
           uploading: false,
-          error: 'Error uploading photo.',
-        });
-      }
-      return true;
-    }, 2000);
+          photos: this.state.photos.filter(url => url !== photo),
+          uploadedPhotos: [photo, ...this.state.uploadedPhotos],
+        },
+        () => {
+          AsyncStorage.setItem('photos', JSON.stringify(this.state.photos));
+          AsyncStorage.setItem(
+            'uploadedPhotos',
+            JSON.stringify(this.state.uploadedPhotos)
+          );
+          // delete photo here from system as well if not saving uploaded list
+
+          // try next upload
+          this.queNextUpload();
+        }
+      );
+    } else {
+      this.setState({
+        uploading: false,
+        error: 'Error uploading photo.',
+      });
+    }
+    return true;
   };
 
   handleImageCapture = data => {
@@ -183,10 +191,16 @@ class App extends Component {
                 </View>
               )}
               <View style={styles.sectionContainer}>
-                {photos.map(photo => {
+                {photos.map((photo, index) => {
                   return (
                     <Image
-                      style={styles.image}
+                      style={[
+                        styles.image,
+                        {
+                          borderColor: 'blue',
+                          borderWidth: uploading && index === 0 ? 2 : 0,
+                        },
+                      ]}
                       source={{
                         uri: photo,
                       }}
