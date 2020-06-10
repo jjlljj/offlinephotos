@@ -2,6 +2,7 @@ import React, { Component } from 'react';
 import {
   SafeAreaView,
   StyleSheet,
+  ActivityIndicator,
   TouchableOpacity,
   ScrollView,
   View,
@@ -21,15 +22,22 @@ class App extends Component {
     this.state = {
       view: 'photos',
       photos: [],
+      uploadedPhotos: [],
       uploading: false,
     };
   }
 
   componentDidMount = async () => {
     const photoPaths = await AsyncStorage.getItem('photos');
+    const uploadedPhotoPaths = await AsyncStorage.getItem('uploadedPhotos');
+
+    console.log({ photoPaths, uploadedPhotoPaths });
+
     photoPaths &&
       this.setState({
-        photos: JSON.parse(photoPaths),
+        photos: JSON.parse(photoPaths || []),
+        uploadedPhotos:
+          (uploadedPhotoPaths && JSON.parse(uploadedPhotoPaths)) || [],
       });
   };
 
@@ -50,13 +58,29 @@ class App extends Component {
 
     if (this.state.photos.length && !error) {
       this.setState({ uploading: true }, () => {
-
-      })
+        this.uploadPhoto(this.state.photos[0]);
+      });
     }
   };
 
   uploadPhoto = async photo => {
     setTimeout(() => {
+      this.setState(
+        {
+          uploading: false,
+          photos: this.state.photos.filter(url => url !== photo),
+          uploadedPhotos: [photo, ...this.state.uploadedPhotos],
+        },
+        () => {
+          // delete photo here from system storage as well
+          
+          AsyncStorage.setItem('photos', JSON.stringify(this.state.photos));
+          AsyncStorage.setItem(
+            'uploadedPhotos',
+            JSON.stringify(this.state.uploadedPhotos)
+          );
+        }
+      );
       return true;
     }, 2000);
   };
@@ -93,7 +117,7 @@ class App extends Component {
   };
 
   render() {
-    const { view, photos } = this.state;
+    const { view, photos, uploadedPhotos, uploading } = this.state;
 
     return (
       <>
@@ -109,12 +133,51 @@ class App extends Component {
             </TouchableOpacity>
           )}
           {view === 'photos' && (
+            <TouchableOpacity
+              style={styles.capture}
+              onPress={this.queNextUpload}
+            >
+              <Text>Try Upload</Text>
+            </TouchableOpacity>
+          )}
+          {view === 'photos' && (
+            <ScrollView
+              contentInsetAdjustmentBehavior="automatic"
+              style={styles.scrollView}
+            >
+              {uploading && (
+                <View
+                  style={{
+                    justifyContent: 'center',
+                    alignItems: 'center',
+                    flexDirection: 'row',
+                  }}
+                >
+                  <ActivityIndicator size="small" />
+                  <Text>Uploading...</Text>
+                </View>
+              )}
+              <View style={styles.sectionContainer}>
+                {photos.map(photo => {
+                  return (
+                    <Image
+                      style={styles.image}
+                      source={{
+                        uri: photo,
+                      }}
+                    />
+                  );
+                })}
+              </View>
+            </ScrollView>
+          )}
+          {view === 'uploaded' && (
             <ScrollView
               contentInsetAdjustmentBehavior="automatic"
               style={styles.scrollView}
             >
               <View style={styles.sectionContainer}>
-                {photos.map(photo => {
+                {uploadedPhotos.map(photo => {
                   return (
                     <Image
                       style={styles.image}
