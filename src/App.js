@@ -178,7 +178,7 @@ class App extends Component {
                     marginVertical: 5,
                   }}
                 >
-                  <ActivityIndicator size="small" />
+                  <ActivityIndicator size="small" style={{ marginRight: 5 }} />
                   <Text>Uploading...</Text>
                 </View>
               )}
