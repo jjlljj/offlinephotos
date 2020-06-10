@@ -100,7 +100,7 @@ class App extends Component {
                 {photos.map(photo => {
                   return (
                     <Image
-                      style={{ width: 200, height: 200, margin: 10 }}
+                      style={styles.image}
                       source={{
                         uri: photo,
                       }}
@@ -200,6 +200,7 @@ const styles = StyleSheet.create({
   },
   sectionContainer: {
     paddingHorizontal: 24,
+    paddingVertical: 5,
     alignItems: 'center',
   },
   sectionTitle: {
@@ -218,13 +219,10 @@ const styles = StyleSheet.create({
   highlight: {
     fontWeight: '700',
   },
-  footer: {
-    color: Colors.dark,
-    fontSize: 12,
-    fontWeight: '600',
-    padding: 4,
-    paddingRight: 12,
-    textAlign: 'right',
+  image: {
+    width: 200,
+    height: 200,
+    margin: 5,
   },
 });
 
