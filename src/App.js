@@ -21,6 +21,7 @@ class App extends Component {
     this.state = {
       view: 'photos',
       photos: [],
+      uploading: false,
     };
   }
 
@@ -42,6 +43,22 @@ class App extends Component {
         AsyncStorage.setItem('photos', JSON.stringify(this.state.photos));
       }
     );
+  };
+
+  queNextUpload = () => {
+    const error = false;
+
+    if (this.state.photos.length && !error) {
+      this.setState({ uploading: true }, () => {
+
+      })
+    }
+  };
+
+  uploadPhoto = async photo => {
+    setTimeout(() => {
+      return true;
+    }, 2000);
   };
 
   handleImageCapture = data => {
