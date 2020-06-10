@@ -11,6 +11,7 @@ import {
 } from 'react-native';
 import { RNCamera } from 'react-native-camera';
 import * as RNFS from 'react-native-fs';
+import AsyncStorage from '@react-native-community/async-storage';
 
 import { Colors } from 'react-native/Libraries/NewAppScreen';
 
@@ -23,7 +24,47 @@ class App extends Component {
     };
   }
 
-  componentDidMount() {}
+  componentDidMount() {
+
+  }
+
+  handleImageCapture = data => {
+    const imagePath = `${
+      RNFS.DocumentDirectoryPath
+    }/${new Date().toISOString()}.jpg`.replace(/:/g, '-');
+
+    try {
+      if (Platform.OS === 'ios') {
+        RNFS.copyFile(data.uri, imagePath)
+          .then(res => {
+            console.log({ res });
+            console.log('saved path: ', imagePath);
+            this.setState({
+              view: 'photos',
+              photos: [imagePath, ...this.state.photos],
+            });
+          })
+          .catch(err => {
+            console.log('ERROR: image file write failed!!!');
+            console.log(err.message, err.code);
+          });
+      } else if (Platform.OS === 'android') {
+        RNFS.copyFile(data.uri, imagePath)
+          .then(res => {
+            this.setState({
+              view: 'photos',
+              photos: [imagePath, ...this.state.photos],
+            });
+          })
+          .catch(err => {
+            console.log('ERROR: image file write failed!!!');
+            console.log(err.message, err.code);
+          });
+      }
+    } catch (err) {
+      console.log({ err });
+    }
+  };
 
   render() {
     const { view, photos } = this.state;
@@ -50,7 +91,7 @@ class App extends Component {
                 {photos.map(photo => {
                   return (
                     <Image
-                      style={{ width: 200, height: 200, margin: 10, }}
+                      style={{ width: 200, height: 200, margin: 10 }}
                       source={{
                         uri: photo,
                       }}
@@ -65,43 +106,7 @@ class App extends Component {
               onCancel={() => {
                 this.setState({ view: 'photos' });
               }}
-              onCapture={data => {
-                const imagePath = `${
-                  RNFS.DocumentDirectoryPath
-                }/${new Date().toISOString()}.jpg`.replace(/:/g, '-');
-                console.log('capture', data.uri);
-
-                try {
-                  if (Platform.OS === 'ios') {
-                    RNFS.copyFile(data.uri, imagePath)
-                      .then(res => {
-                        console.log({ res });
-                        this.setState({
-                          view: 'photos',
-                          photos: [imagePath, ...this.state.photos],
-                        });
-                      })
-                      .catch(err => {
-                        console.log('ERROR: image file write failed!!!');
-                        console.log(err.message, err.code);
-                      });
-                  } else if (Platform.OS === 'android') {
-                    RNFS.copyFile(data.uri, imagePath)
-                      .then(res => {
-                        this.setState({
-                          view: 'photos',
-                          photos: [imagePath, ...this.state.photos],
-                        });
-                      })
-                      .catch(err => {
-                        console.log('ERROR: image file write failed!!!');
-                        console.log(err.message, err.code);
-                      });
-                  }
-                } catch (err) {
-                  console.log({ err });
-                }
-              }}
+              onCapture={handleImageCapture}
             />
           )}
         </SafeAreaView>
