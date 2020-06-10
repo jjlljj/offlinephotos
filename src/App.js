@@ -175,6 +175,7 @@ class App extends Component {
                     justifyContent: 'center',
                     alignItems: 'center',
                     flexDirection: 'row',
+                    marginVertical: 5,
                   }}
                 >
                   <ActivityIndicator size="small" />
