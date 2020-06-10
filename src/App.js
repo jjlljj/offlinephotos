@@ -65,22 +65,27 @@ class App extends Component {
 
   uploadPhoto = async photo => {
     setTimeout(() => {
-      this.setState(
-        {
-          uploading: false,
-          photos: this.state.photos.filter(url => url !== photo),
-          uploadedPhotos: [photo, ...this.state.uploadedPhotos],
-        },
-        () => {
-          // delete photo here from system storage as well
-          
-          AsyncStorage.setItem('photos', JSON.stringify(this.state.photos));
-          AsyncStorage.setItem(
-            'uploadedPhotos',
-            JSON.stringify(this.state.uploadedPhotos)
-          );
-        }
-      );
+      const success = true;
+      if (success) {
+        this.setState(
+          {
+            uploading: false,
+            photos: this.state.photos.filter(url => url !== photo),
+            uploadedPhotos: [photo, ...this.state.uploadedPhotos],
+          },
+          () => {
+            AsyncStorage.setItem('photos', JSON.stringify(this.state.photos));
+            AsyncStorage.setItem(
+              'uploadedPhotos',
+              JSON.stringify(this.state.uploadedPhotos)
+            );
+            // delete photo here from system as well if not saving uploaded list
+
+            // try next upload
+            this.queNextUpload();
+          }
+        );
+      }
       return true;
     }, 2000);
   };
@@ -124,27 +129,39 @@ class App extends Component {
         <StatusBar barStyle="dark-content" />
         <SafeAreaView style={{ flex: 1 }}>
           <Text style={styles.sectionTitle}>Photos</Text>
-          {view === 'photos' && (
-            <TouchableOpacity
-              style={styles.capture}
-              onPress={() => this.setState({ view: 'camera' })}
-            >
-              <Text>Take A New Photo</Text>
-            </TouchableOpacity>
-          )}
-          {view === 'photos' && (
-            <TouchableOpacity
-              style={styles.capture}
-              onPress={this.queNextUpload}
-            >
-              <Text>Try Upload</Text>
-            </TouchableOpacity>
+          {(view === 'photos' || view === 'uploaded') && (
+            <View style={{ flexDirection: 'row', flexWrap: 'wrap' }}>
+              <TouchableOpacity
+                style={styles.capture}
+                onPress={() => this.setState({ view: 'camera' })}
+              >
+                <Text>Take A New Photo</Text>
+              </TouchableOpacity>
+              <TouchableOpacity
+                style={styles.capture}
+                onPress={() => {
+                  this.setState({
+                    view: view === 'photos' ? 'uploaded' : 'photos',
+                  });
+                }}
+              >
+                <Text>{view === 'photos' ? 'View Uploaded' : 'View Que'}</Text>
+              </TouchableOpacity>
+              <TouchableOpacity
+                style={styles.capture}
+                onPress={this.queNextUpload}
+                disabled={this.state.uploading}
+              >
+                <Text>Try Upload</Text>
+              </TouchableOpacity>
+            </View>
           )}
           {view === 'photos' && (
             <ScrollView
               contentInsetAdjustmentBehavior="automatic"
               style={styles.scrollView}
             >
+              <Text style={styles.sectionDescription}>Photos To Upload</Text>
               {uploading && (
                 <View
                   style={{
@@ -176,6 +193,7 @@ class App extends Component {
               contentInsetAdjustmentBehavior="automatic"
               style={styles.scrollView}
             >
+              <Text style={styles.sectionDescription}>Uploaded Photos</Text>
               <View style={styles.sectionContainer}>
                 {uploadedPhotos.map(photo => {
                   return (
@@ -257,13 +275,6 @@ const styles = StyleSheet.create({
     backgroundColor: Colors.lighter,
     flex: 1,
   },
-  engine: {
-    position: 'absolute',
-    right: 0,
-  },
-  body: {
-    backgroundColor: Colors.white,
-  },
   preview: {
     flex: 1,
     justifyContent: 'flex-end',
@@ -274,9 +285,11 @@ const styles = StyleSheet.create({
     backgroundColor: '#f2f2f2',
     borderRadius: 5,
     padding: 10,
-    paddingHorizontal: 20,
+    paddingHorizontal: 10,
     alignSelf: 'center',
     margin: 5,
+    minWidth: 120,
+    alignItems: 'center',
   },
   sectionContainer: {
     paddingHorizontal: 24,
@@ -294,7 +307,7 @@ const styles = StyleSheet.create({
     marginTop: 8,
     fontSize: 18,
     fontWeight: '400',
-    color: Colors.dark,
+    marginHorizontal: 10,
   },
   highlight: {
     fontWeight: '700',
