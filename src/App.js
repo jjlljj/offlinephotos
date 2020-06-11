@@ -32,8 +32,6 @@ class App extends Component {
     const photoPaths = await AsyncStorage.getItem('photos');
     const uploadedPhotoPaths = await AsyncStorage.getItem('uploadedPhotos');
 
-    console.log({ photoPaths, uploadedPhotoPaths });
-
     photoPaths &&
       this.setState({
         photos: JSON.parse(photoPaths || []),
@@ -75,6 +73,7 @@ class App extends Component {
 
   uploadPhoto = async photo => {
     // upload photo to server/service here
+    // should probably check w/ upload server to see if it already exists prior to upload
     const success = await this.asyncUpload();
 
     if (success) {
@@ -90,7 +89,7 @@ class App extends Component {
             'uploadedPhotos',
             JSON.stringify(this.state.uploadedPhotos)
           );
-          // delete photo here from system as well if not saving uploaded list
+          // delete photo here from system as well if not saving locally for uploaded list
 
           // try next upload
           this.queNextUpload();
@@ -102,7 +101,6 @@ class App extends Component {
         error: 'Error uploading photo.',
       });
     }
-    return true;
   };
 
   handleImageCapture = data => {
@@ -122,8 +120,10 @@ class App extends Component {
             console.log(err.message, err.code);
           });
       } else if (Platform.OS === 'android') {
+        // may need to handle android capture separately for resizing, etc.
         RNFS.copyFile(data.uri, imagePath)
           .then(res => {
+            console.log('saved path: ', imagePath);
             this.setPhoto(imagePath);
           })
           .catch(err => {
@@ -279,7 +279,7 @@ const Camera = ({ onCapture, onCancel }) => {
               try {
                 onCapture(data);
               } catch (err) {
-                console.log({ err });
+                console.log('capture error', err);
               }
             }
           }}
