@@ -53,9 +53,9 @@ class App extends Component {
   };
 
   queNextUpload = () => {
-    const { error } = this.state;
+    const { error, uploading } = this.state;
 
-    if (this.state.photos.length && !error) {
+    if (this.state.photos.length && !error && !uploading) {
       this.setState({ uploading: true }, () => {
         this.uploadPhoto(this.state.photos[0]);
       });
